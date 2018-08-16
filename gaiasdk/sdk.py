@@ -10,32 +10,11 @@ from grpc_health.v1 import health_pb2, health_pb2_grpc
 from concurrent import futures
 
 from fnvhash import fnv1a_32
-from job import Job, Argument, ManualInteraction
+from job import Job, Argument, ManualInteraction, GetJob, JobWrapper
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 cachedJobs = []
-
-os.environ['GRPC_SSL_CIPHER_SUITES'] = '' + \
-    '' + \
-    'ECDHE-RSA-AES128-GCM-SHA256:' + \
-    'ECDHE-RSA-AES128-SHA256:' + \
-    'ECDHE-RSA-AES256-SHA384:' + \
-    'ECDHE-RSA-AES256-GCM-SHA384:' + \
-    'ECDHE-ECDSA-AES128-GCM-SHA256:' + \
-    'ECDHE-ECDSA-AES128-SHA256:' + \
-    'ECDHE-ECDSA-AES256-SHA384:' + \
-    'ECDHE-ECDSA-AES256-GCM-SHA384'
-
-def _get_job(hash):
-    for job in cachedJobs:
-            if job.job.unique_id == hash:
-                return job
-    return None
-
-class jobWrapper:
-    handler = None
-    job = None
 
 class ExitPipeline(Exception):
     pass
@@ -48,7 +27,7 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
             yield job.job
 
     def ExecuteJob(self, request, context):
-        job = _get_job(request)
+        job = GetJob(request, cachedJobs)
         if job == None:
             return "job not found"
         
@@ -119,7 +98,7 @@ def serve(jobs):
                     raise Exception("job '" + job.title + "' has dependency '" + depJob + "' which is not declared")
         
         # job wrapper object for this job
-        w = jobWrapper()
+        w = JobWrapper()
         w.handler = job.handler
         w.job = p
         cachedJobs.append(w)
@@ -147,11 +126,6 @@ def serve(jobs):
     private_key = open(keyPath).read()
     certificate_chain = open(certPath).read()
     root_cert = open(caCertPath).read()
-    print private_key
-    print "-------"
-    print certificate_chain
-    print "-------"
-    print root_cert
 
     # We need to build a health service to work with go-plugin
     health = HealthServicer()
@@ -161,11 +135,9 @@ def serve(jobs):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=20))
     private_key_certificate_chain_pairs = ( (private_key, certificate_chain), )
     server_credentials = grpc.ssl_server_credentials(private_key_certificate_chain_pairs, root_cert, True)
-    #server_credentials = grpc.ssl_server_credentials( ( (private_key, certificate_chain), ) )
     plugin_pb2_grpc.add_PluginServicer_to_server(GRPCServer(), server)
     health_pb2_grpc.add_HealthServicer_to_server(health, server)
     port = server.add_secure_port('localhost:0', server_credentials)
-    print "Port: " + str(port)
     server.start()
 
     # Output information

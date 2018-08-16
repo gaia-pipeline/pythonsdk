@@ -28,3 +28,12 @@ class ManualInteraction:
     inputType = InputType.TextFieldInp
     value = ""
 
+def GetJob(hash, cachedJobs):
+    for job in cachedJobs:
+            if job.job.unique_id == hash:
+                return job
+    return None
+
+class JobWrapper:
+    handler = None
+    job = None
