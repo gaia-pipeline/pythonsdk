@@ -33,8 +33,8 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
         
         # transform args
         args = []
-        if hasattr(job, "args"):
-            for arg in job.args:
+        if hasattr(request, "args"):
+            for arg in request.args:
                 a = Argument("", InputType.TextFieldInp, arg.key, arg.value)
                 args.append(a)
 
@@ -44,12 +44,12 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
             job.handler(args)
         except ExitPipeline, e:
             result.exit_pipeline = True
-            result.unique_id = job.unique_id
+            result.unique_id = job.job.unique_id
             result.message = str(e)
         except Exception, e:
             result.exit_pipeline = True
             result.failed = True
-            result.unique_id = job.unique_id
+            result.unique_id = job.job.unique_id
             result.message = str(e)
 
         return result
@@ -99,9 +99,7 @@ def serve(jobs):
                     raise Exception("job '" + job.title + "' has dependency '" + depJob + "' which is not declared")
         
         # job wrapper object for this job
-        w = JobWrapper()
-        w.handler = job.handler
-        w.job = p
+        w = JobWrapper(job.handler, p)
         cachedJobs.append(w)
 
     # Check if two jobs have the same title which is restricted

@@ -7,16 +7,13 @@ class InputType(Enum):
     VaultInp = "vault"
 
 class Job:
-    def __init__(self, title="", desc="", handler=None):
+    def __init__(self, title="", desc="", handler=None, dependsOn=[], args=[], interaction=None):
         self.title = title
         self.description = desc
         self.handler = handler
-    handler = None
-    title = ""
-    description = ""
-    dependsOn = []
-    args = []
-    interaction = None
+        self.dependsOn = dependsOn
+        self.args = args
+        self.interaction = interaction
 
 class Argument:
     def __init__(self, desc="", inputType=InputType.TextFieldInp, key="", value=""):
@@ -24,19 +21,12 @@ class Argument:
         self.inputType = inputType
         self.key = key
         self.value = value
-    description = ""
-    inputType = InputType.TextFieldInp
-    key = ""
-    value = ""
 
 class ManualInteraction:
     def __init__(self, desc="", inputType=InputType.TextFieldInp, value=""):
         self.description = desc
         self.inputType = inputType
         self.value = value
-    description = ""
-    inputType = InputType.TextFieldInp
-    value = ""
 
 def GetJob(hash, cachedJobs):
     for job in cachedJobs:
@@ -45,5 +35,6 @@ def GetJob(hash, cachedJobs):
     return None
 
 class JobWrapper:
-    handler = None
-    job = None
+    def __init__(self, handler=None, job=None):
+        self.handler = handler
+        self.job = job
