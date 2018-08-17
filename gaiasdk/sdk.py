@@ -10,7 +10,7 @@ from grpc_health.v1 import health_pb2, health_pb2_grpc
 from concurrent import futures
 
 from fnvhash import fnv1a_32
-from job import Job, Argument, ManualInteraction, GetJob, JobWrapper
+from job import Job, Argument, ManualInteraction, GetJob, JobWrapper, InputType
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -27,15 +27,16 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
             yield job.job
 
     def ExecuteJob(self, request, context):
-        job = GetJob(request, cachedJobs)
+        job = GetJob(request.unique_id, cachedJobs)
         if job == None:
             return "job not found"
         
         # transform args
         args = []
-        for arg in job.args:
-            a = Argument(arg.key, arg.value)
-            args.append(a)
+        if hasattr(job, "args"):
+            for arg in job.args:
+                a = Argument("", InputType.TextFieldInp, arg.key, arg.value)
+                args.append(a)
 
         # Execute job
         result = plugin_pb2.JobResult()
@@ -137,11 +138,11 @@ def serve(jobs):
     server_credentials = grpc.ssl_server_credentials(private_key_certificate_chain_pairs, root_cert, True)
     plugin_pb2_grpc.add_PluginServicer_to_server(GRPCServer(), server)
     health_pb2_grpc.add_HealthServicer_to_server(health, server)
-    port = server.add_secure_port('localhost:0', server_credentials)
+    port = server.add_secure_port('127.0.0.1:0', server_credentials)
     server.start()
 
     # Output information
-    print("1|2|tcp|localhost:" + str(port) + "|grpc")
+    print("1|2|tcp|127.0.0.1:" + str(port) + "|grpc")
     sys.stdout.flush()
 
     try:
