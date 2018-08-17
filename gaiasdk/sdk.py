@@ -73,7 +73,7 @@ def serve(jobs):
             for arg in job.args:
                 a = plugin_pb2.Argument()
                 a.description = arg.description
-                a.type = arg.type
+                a.type = arg.inputType.value
                 a.key = arg.key
                 a.value = arg.value
 
