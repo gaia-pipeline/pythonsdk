@@ -89,7 +89,7 @@ def serve(jobs):
         if job.dependsOn:
             for depJob in job.dependsOn:
                 for currJob in jobs:
-                    if depJob.casefold() == currJob.title.casefold():
+                    if depJob.lower() == currJob.title.lower():
                         p.dependson.append(fnv1a_32(bytes(currJob.title)))
                         foundDep = True
                         break
