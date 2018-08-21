@@ -135,11 +135,11 @@ def serve(jobs):
     server_credentials = grpc.ssl_server_credentials(private_key_certificate_chain_pairs, root_cert, True)
     plugin_pb2_grpc.add_PluginServicer_to_server(GRPCServer(), server)
     health_pb2_grpc.add_HealthServicer_to_server(health, server)
-    port = server.add_secure_port('localhost:0', server_credentials)
+    port = server.add_secure_port('127.0.0.1:0', server_credentials)
     server.start()
 
     # Output information
-    print("1|2|tcp|localhost:" + str(port) + "|grpc")
+    print("1|2|tcp|127.0.0.1:" + str(port) + "|grpc")
     sys.stdout.flush()
 
     try:
