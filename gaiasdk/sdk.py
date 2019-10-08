@@ -2,15 +2,16 @@ import sys
 import time
 import os
 import grpc
-import plugin_pb2
-import plugin_pb2_grpc
+import six
+from . import plugin_pb2
+from . import plugin_pb2_grpc
 
 from grpc_health.v1.health import HealthServicer
 from grpc_health.v1 import health_pb2, health_pb2_grpc
 from concurrent import futures
 
 from fnvhash import fnv1a_32
-from job import Job, Argument, ManualInteraction, GetJob, JobWrapper, InputType
+from .job import Job, Argument, ManualInteraction, GetJob, JobWrapper, InputType
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -42,11 +43,11 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
         result = plugin_pb2.JobResult()
         try:
             job.handler(args)
-        except ExitPipeline, e:
+        except ExitPipeline as e:
             result.exit_pipeline = True
             result.unique_id = job.job.unique_id
             result.message = str(e)
-        except Exception, e:
+        except Exception as e:
             result.exit_pipeline = True
             result.failed = True
             result.unique_id = job.job.unique_id
@@ -80,7 +81,8 @@ def serve(jobs):
                 args.append(a)
 
         # Set the rest of the fields
-        p.unique_id = fnv1a_32(bytes(job.title))
+        jobTitle = bytes(job.title) if six.PY2 else bytes(job.title, 'utf8')
+        p.unique_id = fnv1a_32(jobTitle)
         p.title = job.title
         p.description = job.description
         p.args.extend(args)
@@ -124,6 +126,11 @@ def serve(jobs):
     private_key = open(keyPath).read()
     certificate_chain = open(certPath).read()
     root_cert = open(caCertPath).read()
+
+    if six.PY3:
+        private_key = bytes(private_key, 'utf8')
+        certificate_chain = bytes(certificate_chain, 'utf8')
+        root_cert = bytes(root_cert, 'utf8')
 
     # We need to build a health service to work with go-plugin
     health = HealthServicer()
