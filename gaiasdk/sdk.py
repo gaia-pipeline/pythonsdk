@@ -30,7 +30,7 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
         job = GetJob(request.unique_id, cachedJobs)
         if job == None:
             return "job not found"
-        
+
         # transform args
         args = []
         if hasattr(request, "args"):
@@ -42,11 +42,11 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
         result = plugin_pb2.JobResult()
         try:
             job.handler(args)
-        except ExitPipeline, e:
+        except ExitPipeline as e:
             result.exit_pipeline = True
             result.unique_id = job.job.unique_id
             result.message = str(e)
-        except Exception, e:
+        except Exception as e:
             result.exit_pipeline = True
             result.failed = True
             result.unique_id = job.job.unique_id
@@ -66,7 +66,7 @@ def serve(jobs):
             p.interaction.description = job.interaction.description
             p.interaction.type = job.interaction.inputType
             p.interaction.value = job.interaction.value
-        
+
         # Arguments
         args = []
         if job.args:
@@ -93,10 +93,10 @@ def serve(jobs):
                         p.dependson.append(fnv1a_32(bytes(currJob.title)))
                         foundDep = True
                         break
-                    
+
                 if not foundDep:
                     raise Exception("job '" + job.title + "' has dependency '" + depJob + "' which is not declared")
-        
+
         # job wrapper object for this job
         w = JobWrapper(job.handler, p)
         cachedJobs.append(w)
