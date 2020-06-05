@@ -1,11 +1,11 @@
 import setuptools
 
-setuptools.setup(name='gaiasdk',
-      version='0.0.17',
-      description='Gaia Python SDK for python pipelines',
-      url='https://github.com/gaia-pipeline/pythonsdk',
-      author='Michel Vocks',
-      author_email='michelvocks@gmail.com',
+setuptools.setup(name='skarlsogaiasdk',
+      version='0.0.19',
+      description='Test Gaia Python SDK Python 3 for python pipelines',
+      url='https://github.com/Skarlso/pythonsdk',
+      author='Gergely Brautigam',
+      author_email='skarlso777@gmail.com',
       license='Apache-2.0',
       packages=setuptools.find_packages(),
       install_requires=[

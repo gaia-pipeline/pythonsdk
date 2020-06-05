@@ -31,7 +31,7 @@ class GRPCServer(plugin_pb2_grpc.PluginServicer):
         job = GetJob(request.unique_id, cachedJobs)
         if job == None:
             return "job not found"
-        
+
         # transform args
         args = []
         if hasattr(request, "args"):
@@ -67,7 +67,7 @@ def serve(jobs):
             p.interaction.description = job.interaction.description
             p.interaction.type = job.interaction.inputType
             p.interaction.value = job.interaction.value
-        
+
         # Arguments
         args = []
         if job.args:
@@ -92,13 +92,14 @@ def serve(jobs):
             for depJob in job.dependsOn:
                 for currJob in jobs:
                     if depJob.lower() == currJob.title.lower():
-                        p.dependson.append(fnv1a_32(bytes(currJob.title)))
+                        title = bytes(currJob.title) if six.PY2 else bytes(currJob.title, 'utf8')
+                        p.dependson.append(fnv1a_32(title))
                         foundDep = True
                         break
-                    
+
                 if not foundDep:
                     raise Exception("job '" + job.title + "' has dependency '" + depJob + "' which is not declared")
-        
+
         # job wrapper object for this job
         w = JobWrapper(job.handler, p)
         cachedJobs.append(w)
