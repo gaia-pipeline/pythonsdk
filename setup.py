@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(name='gaiasdk',
-      version='0.0.16',
+      version='0.0.20',
       description='Gaia Python SDK for python pipelines',
       url='https://github.com/gaia-pipeline/pythonsdk',
       author='Michel Vocks',
